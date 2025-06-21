@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Weather App</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #83a4d4, #b6fbff);
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    h1 {
+      margin-top: 20px;
+      font-size: 2.5rem;
+    }
+    .controls {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    input {
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      width: 250px;
+    }
+    button {
+      padding: 10px 15px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    .card {
+      background-color: white;
+      padding: 20px;
+      border-radius: 16px;
+      margin-top: 30px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌤️ Weather App</h1>
+  
+  <div class="controls">
+    <input type="text" id="locationInput" placeholder="Enter location"/>
+    <div style="display: flex; gap: 10px;">
+      <button onclick="getWeatherByInput()">Get Weather</button>
+      <button onclick="getWeatherByLocation()">Detect My Location</button>
+    </div>
+  </div>
+
+  <div id="weatherCard" class="card" style="display: none;">
+    <h2 id="locationName">📍 Location</h2>
+    <p id="localTime">🕒 Local Time</p>
+    
+    <h1 id="tempC">🌡️ 0°C</h1>
+    <p id="conditionText">⛅ Weather</p>
+
+    <div class="grid">
+      <p><strong>💧 Humidity:</strong> <span id="humidity"></span>%</p>
+      <p><strong>🌬️ Wind Speed:</strong> <span id="wind"></span> kph</p>
+      <p><strong>🔥 Feels Like:</strong> <span id="feelsLike"></span>°C</p>
+      <p><strong>⚖️ Pressure:</strong> <span id="pressure"></span> mb</p>
+      <p><strong>🌞 UV Index:</strong> <span id="uv"></span></p>
+      <p><strong>🌫️ Air Quality (PM2.5):</strong> <span id="pm25"></span></p>
+    </div>
+  </div>
+
+  <script>
+    const apiKey = "52a45d462a0548a1b42102704250906";
+
+    function displayWeather(data) {
+      document.getElementById("weatherCard").style.display = "block";
+      document.getElementById("locationName").textContent = "📍 " + data.location.name + ", " + data.location.country;
+      document.getElementById("localTime").textContent = "🕒 " + data.location.localtime;
+      document.getElementById("tempC").textContent = "🌡️ " + data.current.temp_c + "°C";
+      document.getElementById("conditionText").textContent = "⛅ " + data.current.condition.text;
+      document.getElementById("humidity").textContent = data.current.humidity;
+      document.getElementById("wind").textContent = data.current.wind_kph;
+      document.getElementById("feelsLike").textContent = data.current.feelslike_c;
+      document.getElementById("pressure").textContent = data.current.pressure_mb;
+      document.getElementById("uv").textContent = data.current.uv;
+      document.getElementById("pm25").textContent = data.current.air_quality.pm2_5.toFixed(1);
+    }
+
+    async function getWeather(query) {
+      try {
+        const res = await fetch(`http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${query}&aqi=yes`);
+        const data = await res.json();
+        if (data.error) {
+          alert(data.error.message);
+        } else {
+          displayWeather(data);
+        }
+      } catch (err) {
+        alert("Failed to fetch weather data.");
+        console.error(err);
+      }
+    }
+
+    function getWeatherByInput() {
+      const location = document.getElementById("locationInput").value;
+      if (location) {
+        getWeather(location);
+      } else {
+        alert("Please enter a location.");
+      }
+    }
+
+    function getWeatherByLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const query = `${position.coords.latitude},${position.coords.longitude}`;
+            getWeather(query);
+          },
+          (err) => {
+            alert("Location access denied.");
+          }
+        );
+      } else {
+        alert("Geolocation is not supported by your browser.");
+      }
+    }
+  </script>
+</body>
+</html>
